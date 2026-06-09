@@ -121,11 +121,20 @@ fig.update_layout(
     height=700,
 )
 
-# 天球図らしく、赤経は右に行くほど小さくする
-fig.update_xaxes(autorange="reversed")
+# 表示範囲をスライダー設定値で固定
+if crosses_zero:
+    x_min = ra_min - 360
+    x_max = ra_max
+else:
+    x_min = ra_min
+    x_max = ra_max
 
-# 横1度・縦1度の縮尺をそろえる
+fig.update_xaxes(
+    range=[x_max, x_min],  # reversedなので大きい→小さい
+)
+
 fig.update_yaxes(
+    range=[dec_range[0], dec_range[1]],
     scaleanchor="x",
     scaleratio=1,
 )
