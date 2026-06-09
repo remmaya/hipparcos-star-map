@@ -33,6 +33,7 @@ presets = {
 preset = st.selectbox("表示範囲", list(presets.keys()))
 ra_min_default, ra_max_default, dec_min_default, dec_max_default = presets[preset]
 
+# RA範囲
 if ra_min_default <= ra_max_default:
     ra_range = st.slider(
         "赤経 RA [deg]",
@@ -44,6 +45,7 @@ else:
     st.write(f"赤経 RA [deg]：{ra_min_default}〜360, 0〜{ra_max_default}")
     ra_range = (float(ra_min_default), float(ra_max_default))
 
+# Dec範囲
 dec_range = st.slider(
     "赤緯 Dec [deg]",
     -90.0,
@@ -51,6 +53,7 @@ dec_range = st.slider(
     (float(dec_min_default), float(dec_max_default)),
 )
 
+# 実視等級
 vmag_limit = st.slider(
     "表示する実視等級",
     -2.0,
@@ -61,10 +64,13 @@ vmag_limit = st.slider(
 
 ra_min, ra_max = ra_range
 
+# 赤経0度またぎに対応したフィルタ
 if ra_min <= ra_max:
     ra_filter = (df["RAICRS"] >= ra_min) & (df["RAICRS"] <= ra_max)
+    crosses_zero = False
 else:
     ra_filter = (df["RAICRS"] >= ra_min) | (df["RAICRS"] <= ra_max)
+    crosses_zero = True
 
 stars = df[
     ra_filter &
@@ -73,21 +79,32 @@ stars = df[
     (df["Vmag"] <= vmag_limit)
 ].copy()
 
+# 表示用RAを作成
+# 0度またぎの場合、350度台などを -10度台に変換して連続表示する
+stars["plot_ra"] = stars["RAICRS"]
+
+if crosses_zero:
+    stars.loc[stars["plot_ra"] > 180, "plot_ra"] -= 360
+
+# 点の大きさ
 stars["size"] = ((7 - stars["Vmag"]) * 0.7).clip(lower=1)
 
 fig = px.scatter(
     stars,
-    x="RAICRS",
+    x="plot_ra",
     y="DEICRS",
     size="size",
     hover_name="label",
     hover_data={
         "HIP": True,
+        "RAICRS": ":.2f",
+        "DEICRS": ":.2f",
         "Vmag": ":.2f",
         "pc": ":.1f",
         "Plx": ":.2f",
         "e_Plx": True,
         "B-V": True,
+        "plot_ra": False,
         "size": False,
     },
 )
