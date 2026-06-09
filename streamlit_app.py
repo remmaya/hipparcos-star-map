@@ -32,21 +32,21 @@ presets = {
 
 preset = st.selectbox("表示範囲", list(presets.keys()))
 
-ra_min, ra_max, dec_min, dec_max = presets[preset]
+ra_min, ra_max = ra_range
 
-ra_range = st.slider("赤経 RA [deg]", 0.0, 360.0, (float(ra_min), float(ra_max)))
-dec_range = st.slider("赤緯 Dec [deg]", -90.0, 90.0, (float(dec_min), float(dec_max)))
-vmag_limit = st.slider("表示する実視等級", -2.0, 7.0, 6.0, 0.5)
+if ra_min <= ra_max:
+    ra_filter = (df["RAICRS"] >= ra_min) & (df["RAICRS"] <= ra_max)
+else:
+    ra_filter = (df["RAICRS"] >= ra_min) | (df["RAICRS"] <= ra_max)
 
 stars = df[
-    (df["RAICRS"] >= ra_range[0]) &
-    (df["RAICRS"] <= ra_range[1]) &
+    ra_filter &
     (df["DEICRS"] >= dec_range[0]) &
     (df["DEICRS"] <= dec_range[1]) &
     (df["Vmag"] <= vmag_limit)
 ].copy()
 
-stars["size"] = (8 - stars["Vmag"]).clip(lower=1)
+stars["size"] = (7 - stars["Vmag"]) * 0.7
 
 fig = px.scatter(
     stars,
