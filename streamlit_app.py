@@ -26,7 +26,7 @@ df.loc[df["label"].str.strip() == "", "label"] = "HIP " + df["HIP"].astype(str)
 presets = {
     "オリオン座": (70, 95, -15, 15),
     "北斗七星": (160, 210, 45, 65),
-    "カシオペヤ座": (0, 35, 50, 70),
+    "カシオペヤ座": (0, 35, 50, 75),
     "自由指定": (70, 95, -15, 15),
 }
 
@@ -79,8 +79,8 @@ stars = df[
     (df["Vmag"] <= vmag_limit)
 ].copy()
 
-# 表示用RAを作成
-# 0度またぎの場合、350度台などを -10度台に変換して連続表示する
+# 表示用RA
+# 0度またぎの場合は、350度台などを -10度台として表示
 stars["plot_ra"] = stars["RAICRS"]
 
 if crosses_zero:
@@ -89,6 +89,7 @@ if crosses_zero:
 # 点の大きさ
 stars["size"] = ((7 - stars["Vmag"]) * 0.7).clip(lower=1)
 
+# 2D星図
 fig = px.scatter(
     stars,
     x="plot_ra",
@@ -109,13 +110,25 @@ fig = px.scatter(
     },
 )
 
+xaxis_title = "RA [deg]"
+if crosses_zero:
+    xaxis_title = "RA [deg]（350°台は -10°台として表示）"
+
 fig.update_layout(
     title=f"{preset} 2D Star Map",
-    xaxis_title="RA [deg]",
+    xaxis_title=xaxis_title,
     yaxis_title="Dec [deg]",
+    height=700,
 )
 
+# 天球図らしく、赤経は右に行くほど小さくする
 fig.update_xaxes(autorange="reversed")
+
+# 横1度・縦1度の縮尺をそろえる
+fig.update_yaxes(
+    scaleanchor="x",
+    scaleratio=1,
+)
 
 st.plotly_chart(fig, use_container_width=True)
 
