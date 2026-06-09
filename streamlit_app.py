@@ -26,11 +26,38 @@ df.loc[df["label"].str.strip() == "", "label"] = "HIP " + df["HIP"].astype(str)
 presets = {
     "オリオン座": (70, 95, -15, 15),
     "北斗七星": (160, 210, 45, 65),
-    "カシオペヤ座": (0, 25, 50, 75),
+    "カシオペヤ座": (350, 25, 50, 75),
     "自由指定": (70, 95, -15, 15),
 }
 
 preset = st.selectbox("表示範囲", list(presets.keys()))
+ra_min_default, ra_max_default, dec_min_default, dec_max_default = presets[preset]
+
+if ra_min_default <= ra_max_default:
+    ra_range = st.slider(
+        "赤経 RA [deg]",
+        0.0,
+        360.0,
+        (float(ra_min_default), float(ra_max_default)),
+    )
+else:
+    st.write(f"赤経 RA [deg]：{ra_min_default}〜360, 0〜{ra_max_default}")
+    ra_range = (float(ra_min_default), float(ra_max_default))
+
+dec_range = st.slider(
+    "赤緯 Dec [deg]",
+    -90.0,
+    90.0,
+    (float(dec_min_default), float(dec_max_default)),
+)
+
+vmag_limit = st.slider(
+    "表示する実視等級",
+    -2.0,
+    7.0,
+    3.5,
+    0.5,
+)
 
 ra_min, ra_max = ra_range
 
@@ -46,7 +73,7 @@ stars = df[
     (df["Vmag"] <= vmag_limit)
 ].copy()
 
-stars["size"] = (7 - stars["Vmag"]) * 0.7
+stars["size"] = ((7 - stars["Vmag"]) * 0.7).clip(lower=1)
 
 fig = px.scatter(
     stars,
