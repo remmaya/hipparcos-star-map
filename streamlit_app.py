@@ -125,7 +125,11 @@ if mode == "星図":
         },
     )
 
-    bright = hr_stars[hr_stars["Vmag"] < 1.5]
+    if show_names:
+        fig.update_traces(
+            textposition="top center",
+            textfont=dict(size=12),
+        )
 
     xaxis_title = "RA [deg]"
     if crosses_zero:
