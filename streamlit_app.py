@@ -4,7 +4,7 @@ import plotly.express as px
 
 CSV_FILE = "hipparcos_lite.csv"
 
-st.title("Hipparcos 2D Star Map")
+# st.title("Hipparcos 2D Star Map")
 
 df = pd.read_csv(CSV_FILE)
 
